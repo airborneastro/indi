@@ -48,7 +48,7 @@
 class MyFocuserPro2 : public INDI::Focuser
 {
     public:
-        MyFocuserPro2();
+        MyFocuserPro2(const char *name);
         virtual ~MyFocuserPro2() override = default;
 
         // add step modes for TMC driver R Brown June 2021

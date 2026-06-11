@@ -32,10 +32,14 @@
 #include <termios.h>
 #include <unistd.h>
 
-static std::unique_ptr<MyFocuserPro2> myFocuserPro2(new MyFocuserPro2());
+//static std::unique_ptr<MyFocuserPro2> myFocuserPro2(new MyFocuserPro2());
 
-MyFocuserPro2::MyFocuserPro2()
+static std::unique_ptr<MyFocuserPro2> focuser1(new MyFocuserPro2("LX200GPS_Focus"));
+static std::unique_ptr<MyFocuserPro2> focuser2(new MyFocuserPro2("ED80_Focus"));
+
+MyFocuserPro2::MyFocuserPro2(const char *name)
 {
+    setDeviceName(name);
     // Can move in Absolute & Relative motions, can AbortFocuser motion, and has variable speed.
     FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_REL_MOVE | FOCUSER_CAN_ABORT | FOCUSER_CAN_REVERSE |
                       FOCUSER_HAS_VARIABLE_SPEED |
