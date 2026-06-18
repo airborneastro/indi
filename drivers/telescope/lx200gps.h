@@ -36,9 +36,14 @@ class LX200GPS : public LX200Autostar
         virtual bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n);
         virtual bool updateTime(ln_date *utc, double utc_offset);
 
+
+private:
+		bool WakeUp();
+
     protected:
         virtual bool UnPark();
-
+		virtual bool setUTCDateTime();
+		bool Handshake() override;
         ISwitchVectorProperty GPSPowerSP;
         ISwitch GPSPowerS[2];
 
@@ -71,5 +76,6 @@ class LX200GPS : public LX200Autostar
 
         INDI::PropertyNumber GuideRateNP {2};
         
-        virtual bool saveConfigItems(FILE *fp);    
+        virtual bool saveConfigItems(FILE *fp);       
+    
 };

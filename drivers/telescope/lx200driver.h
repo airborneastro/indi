@@ -316,3 +316,5 @@ int selectCatalogObject(int fd, int catalog, int NNNN);
 int selectSubCatalog(int fd, int catalog, int subCatalog);
 /* Set Debug */
 void setLX200Debug(const char *deviceName, unsigned int debug_level);
+/* Send time in :hIyymmddhhmmss format */
+bool sendAutostarTime(int fd, const char *cmd);

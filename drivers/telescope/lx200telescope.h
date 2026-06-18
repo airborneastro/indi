@@ -72,6 +72,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         void updateFocusTimer();
 
     protected:
+//    	virtual void TimerHit() override;
         // Slew Rate
         virtual bool SetSlewRate(int index) override;
         // Track Mode (Sidereal, Solar..etc)
@@ -169,7 +170,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         int timeFormat = -1;
         int currentSiteNum {0};
         int trackingMode {0};
-
+		
         bool sendTimeOnStartup = true, sendLocationOnStartup = true;
         uint8_t DBG_SCOPE {0};
 
@@ -204,6 +205,9 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         ISwitch FocusModeS[3];
 
         uint32_t genericCapability {0};
+private:
+
+	std::time_t parkStartTime {0};
 };
 
 #endif // LX200TELESCOPE_H
