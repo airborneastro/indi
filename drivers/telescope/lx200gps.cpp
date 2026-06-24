@@ -30,6 +30,8 @@
 LX200GPS::LX200GPS() : LX200Autostar()
 {
     MaxReticleFlashRate = 9;
+//  Naechste Zeile ist neu und war im Original von PINS, sonst kein Tracking!
+    SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK, 4);
 }
 
 const char *LX200GPS::getDefaultName()
@@ -355,8 +357,8 @@ bool LX200GPS::ISNewSwitch(const char *dev, const char *name, ISState *states, c
     return LX200Autostar::ISNewSwitch(dev, name, states, names, n);
 }
 
-/*
-bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
+//Urspruengliche Funktion auskommentiert Juni 26 für neue Park/Unpark-Logik
+/*bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
     ln_zonedate ltm;
 
@@ -397,6 +399,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     return true;
 }
 */
+
 bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
 	ln_zonedate ltm;
@@ -407,7 +410,6 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	JD = ln_get_julian_day(utc);
 
 	ln_date_to_zonedate(utc, &ltm, utc_offset * 3600);
-
 	char cmd[32];
 	
 	snprintf(cmd, sizeof(cmd),
@@ -416,7 +418,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	if (!sendAutostarTime(PortFD, cmd))
 	{
 		LOG_WARN("Smart-Initialisierung mit :hI fehlgeschlagen. Versuche alten Fallback...");
-        // Optionaler Fallback, falls die Handbox den Befehl verweigert:
+       // Optionaler Fallback, falls die Handbox den Befehl verweigert:
     	if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false)
     	    {
     	        LOG_ERROR("Error setting local time time.");
