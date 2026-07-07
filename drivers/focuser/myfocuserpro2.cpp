@@ -32,10 +32,14 @@
 #include <termios.h>
 #include <unistd.h>
 
-static std::unique_ptr<MyFocuserPro2> myFocuserPro2(new MyFocuserPro2());
+//static std::unique_ptr<MyFocuserPro2> myFocuserPro2(new MyFocuserPro2());
 
-MyFocuserPro2::MyFocuserPro2()
+static std::unique_ptr<MyFocuserPro2> focuser1(new MyFocuserPro2("LX200GPS_Focus"));
+static std::unique_ptr<MyFocuserPro2> focuser2(new MyFocuserPro2("ED80_Focus"));
+
+MyFocuserPro2::MyFocuserPro2(const char *name)
 {
+    setDeviceName(name);
     // Can move in Absolute & Relative motions, can AbortFocuser motion, and has variable speed.
     FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_REL_MOVE | FOCUSER_CAN_ABORT | FOCUSER_CAN_REVERSE |
                       FOCUSER_HAS_VARIABLE_SPEED |
@@ -423,9 +427,6 @@ bool MyFocuserPro2::readTemperature()
 {
     char res[ML_RES] = {0};
 
-    if(!readTempProbeAvailability())
-        return false;
-
     if (sendCommand(":06#", res) == false)
         return false;
 
@@ -502,30 +503,6 @@ bool MyFocuserPro2::readPosition()
         LOGF_ERROR("Unknown error: focuser position value (%s)", res);
         return false;
     }
-    return true;
-}
-
-bool MyFocuserPro2::readTempProbeAvailability()
-{
-    char res[ML_RES] = {0};
-
-    if (sendCommand(":83#", res) == false)
-    {
-        return false;
-    }
-
-    int32_t val;
-    int rc = sscanf(res, "c%d#", &val);
-
-    if (rc > 0)
-    {
-        return val==0 ? false : true;
-    }
-    else
-    {
-        LOGF_ERROR("Unknown error: Temp Probe Availability value (%s). We assume available.", res);
-    }
-
     return true;
 }
 

@@ -30,6 +30,7 @@
 LX200GPS::LX200GPS() : LX200Autostar()
 {
     MaxReticleFlashRate = 9;
+// Important for PINS:    
     SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK, 4);
 }
 
@@ -92,7 +93,7 @@ bool LX200GPS::initProperties()
     GuideRateNP.fill(getDeviceName(), "GUIDE_RATE", "Custom Guide Rate", MOTION_TAB, IP_RW, 0, IPS_IDLE);
 
     MountTypeSP.reset();
-    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON);
+    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON); //better EQ_FORK
 
     return true;
 }
@@ -356,6 +357,7 @@ bool LX200GPS::ISNewSwitch(const char *dev, const char *name, ISState *states, c
     return LX200Autostar::ISNewSwitch(dev, name, states, names, n);
 }
 
+/*
 bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
     ln_zonedate ltm;
@@ -396,6 +398,52 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     LOG_INFO("Time updated, updating planetary data...");
     return true;
 }
+*/
+bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
+{
+	ln_zonedate ltm;
+
+	if (isSimulation())
+		return true;
+// siehe unten bei setutcdatetime, ggf. direkt berechnen
+	JD = ln_get_julian_day(utc);
+
+	ln_date_to_zonedate(utc, &ltm, utc_offset * 3600);
+
+	char cmd[32];
+	
+	snprintf(cmd, sizeof(cmd),
+	":hI%02d%02d%02d%02d%02d%02d#",ltm.years % 100,ltm.months,ltm.days,ltm.hours,ltm.minutes,(int)(ltm.seconds + 0.5));
+	LOGF_INFO("LX200GPS :hI TX -> %s", cmd);
+	if (!sendAutostarTime(PortFD, cmd))
+	{
+		LOG_WARN("Smart-Initialisierung mit :hI fehlgeschlagen. Versuche alten Fallback...");
+        // Optionaler Fallback, falls die Handbox den Befehl verweigert:
+    	if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false)
+    	    {
+    	        LOG_ERROR("Error setting local time time.");
+		    	return false;
+    	    }
+    	if (setLocalDate(utc->days, utc->months, utc->years) == false)
+            {
+                LOG_ERROR("Error setting UTC date.");
+		    	return false;
+    	    }
+    	// Meade defines UTC Offset as the offset ADDED to local time to yield UTC, which
+    	// is the opposite of the standard definition of UTC offset!
+    	if (setUTCOffset(utc_offset) == false)
+    	{
+        	LOG_ERROR("Error setting UTC Offset.");
+        	return false;
+    	}
+    }
+
+    LOG_INFO("Time updated, updating planetary data...");
+    return true;
+}
+
+
+
 
 bool LX200GPS::ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n)
 {
@@ -418,14 +466,86 @@ bool LX200GPS::saveConfigItems(FILE *fp)
     return true;
 }
 
+bool LX200GPS::Handshake()
+{
+    if (!LX200Telescope::Handshake())
+    {
+        if (!WakeUp())
+        	return false;
+    }
+
+	LOG_INFO("LX200GPS is already online, no reboot.");
+	return true;
+
+}
+
+bool LX200GPS::WakeUp()
+{	
+	int ret = 0;
+	LOG_INFO("LX200GPS not responding, sending :I#");
+    LOG_INFO("Waking up LX200GPS...");
+
+    ret = initTelescope(PortFD); //send :I#
+	INDI_UNUSED(ret);
+	const int max_wait_us = 4000;
+	const int step_us = 250;
+	//maximum 16 loops, check_lx_200_connection has 5 s timeout!
+	for (int elapsed = 0; elapsed < max_wait_us; elapsed += step_us)
+	{
+	    if (check_lx200_connection(PortFD) == 0) 
+	    {
+	    	LOG_INFO("LX200GPS responded.");
+	        return true;
+		}
+	    usleep(step_us);
+	}
+
+    LOG_ERROR("LX200GPS did not respond after wakeup.");
+    return false;
+}
+
 bool LX200GPS::UnPark()
 {
-    int ret = 0;
+	ParkSP.setState(IPS_BUSY);
+    ParkSP.apply();	
+	if (LX200GPS::Handshake()) //if not responding, local Handshake() calls WakeUp, :I# reset and waits
+	{
+		TrackState = SCOPE_IDLE;
+    	SetParked(false);
+		ParkSP.setState(IPS_OK);
+        ParkSP.apply();
+		setUTCDateTime(); //setzt die Zeit mit :hI und startet das Teleskop.
+	    return true;
+	}	
+	return false;
+	
+}
 
-    ret = initTelescope(PortFD);
 
-    INDI_UNUSED(ret);
-    TrackState = SCOPE_IDLE;
-    SetParked(false);
-    return true;
+
+bool LX200GPS::setUTCDateTime()
+{
+	ln_date utc;
+    ln_zonedate local;
+    ln_get_date_from_sys(&utc);
+
+    double jd;
+
+    // 1. Aktuelle Systemzeit (UTC) abfragen
+    ln_get_date_from_sys(&utc);
+
+    // 2. In Julianischen Tag konvertierenindiserver -v indi_lx200gps indi_simulator_ccd
+    jd = ln_get_julian_day(&utc);
+
+    // 3. In lokale Zeit der System-Zeitzone umwandeln
+    ln_get_local_date(jd, &local); //da ist DST mit drin, wird für :hI so gebraucht
+
+	char cmd[32];
+    // % 100 macht aus "2026" "26"
+	snprintf(cmd, sizeof(cmd),
+	":hI%02d%02d%02d%02d%02d%02d#",local.years % 100,local.months,local.days,local.hours,local.minutes,(int)(local.seconds + 0.5));
+	LOGF_INFO("LX200GPS :hI TX -> %s", cmd);	
+	sendAutostarTime(PortFD, cmd);
+	return true;
+	
 }

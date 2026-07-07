@@ -15,6 +15,7 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    
 
 */
 
@@ -36,9 +37,14 @@ class LX200GPS : public LX200Autostar
         virtual bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n);
         virtual bool updateTime(ln_date *utc, double utc_offset);
 
+
+private:
+		bool WakeUp();
+
     protected:
         virtual bool UnPark();
-
+		virtual bool setUTCDateTime();
+		bool Handshake() override;
         ISwitchVectorProperty GPSPowerSP;
         ISwitch GPSPowerS[2];
 
@@ -71,5 +77,6 @@ class LX200GPS : public LX200Autostar
 
         INDI::PropertyNumber GuideRateNP {2};
         
-        virtual bool saveConfigItems(FILE *fp);    
+        virtual bool saveConfigItems(FILE *fp);       
+    
 };

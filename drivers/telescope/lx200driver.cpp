@@ -57,7 +57,7 @@ std::mutex lx200CommsLock;
 
 void setLX200Debug(const char *deviceName, unsigned int debug_level)
 {
-    snprintf(lx200Name, MAXINDIDEVICE, "%s", deviceName);
+    strncpy(lx200Name, deviceName, MAXINDIDEVICE);
     DBG_SCOPE = debug_level;
 }
 
@@ -216,7 +216,7 @@ int getCommandInt(int fd, int *value, const char *cmd)
         return -1;
 
     DEBUGFDEVICE(lx200Name, DBG_SCOPE, "VAL [%d]", *value);
-
+ 
     return 0;
 }
 
@@ -1692,11 +1692,10 @@ int SendPulseCmd(int fd, int direction, int duration_msec, bool wait_after_comma
 
     tcflush(fd, TCIFLUSH);
 
-    if(wait_after_command)
-    {
+    if(wait_after_command){
         if (duration_msec > max_wait_ms)
             duration_msec = max_wait_ms;
-        struct timespec duration_ns = {.tv_sec = 0, .tv_nsec = duration_msec * 1000000};
+        struct timespec duration_ns = {.tv_sec = 0,.tv_nsec = duration_msec*1000000};
         nanosleep(&duration_ns, NULL);
     }
     return 0;
@@ -2164,3 +2163,19 @@ int setSDTime(int fd, int x, int y, int z, bool addSpace)
 {
     return setCommandXYZ(fd, x, y, z, ":SS", addSpace);
 }
+bool sendAutostarTime(int fd, const char *cmd)
+{
+	int nbytes_write = 0;
+	int error_type;	
+	if (cmd == nullptr)
+		return false;
+    DEBUGFDEVICE(lx200Name, DBG_SCOPE, "CMD <%s> ", cmd);
+	//LOGF_INFO("LX200 :hI TX -> %s", cmd);
+	if ((error_type = tty_write_string(fd, cmd, &nbytes_write)) != TTY_OK)
+    	return false;
+    
+	tcdrain(fd);
+ 
+	return true;
+}
+

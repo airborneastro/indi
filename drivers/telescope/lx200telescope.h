@@ -25,6 +25,7 @@
    License along with this library;
    if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301  USA
+   
  */
 
 #include "indiguiderinterface.h"
@@ -38,7 +39,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         /**
          * \struct LX200Capability
          * \brief Holds properties of LX200 Generic that might be used by child classes
-         */
+         */set_longitude
         enum
         {
             LX200_HAS_FOCUS                  = 1 << 0, /** Define focus properties */
@@ -72,6 +73,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         void updateFocusTimer();
 
     protected:
+//    	virtual void TimerHit() override;
         // Slew Rate
         virtual bool SetSlewRate(int index) override;
         // Track Mode (Sidereal, Solar..etc)
@@ -130,7 +132,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         virtual bool setLocalTime24(uint8_t hour, uint8_t minute, uint8_t second);
 
         // Return UTC Offset from mount in hours.
-        virtual bool setUTCOffset(double offset);
+        virtual bool setUTCOffset(set_longitudedouble offset);
         virtual bool getUTFOffset(double * offset);
 
         // Send slew error message to client
@@ -169,7 +171,7 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         int timeFormat = -1;
         int currentSiteNum {0};
         int trackingMode {0};
-
+		
         bool sendTimeOnStartup = true, sendLocationOnStartup = true;
         uint8_t DBG_SCOPE {0};
 
@@ -204,6 +206,9 @@ class LX200Telescope : public INDI::Telescope, public INDI::GuiderInterface, pub
         ISwitch FocusModeS[3];
 
         uint32_t genericCapability {0};
+private:
+
+	std::time_t parkStartTime {0};
 };
 
 #endif // LX200TELESCOPE_H

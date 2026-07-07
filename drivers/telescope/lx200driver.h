@@ -192,6 +192,7 @@ char ACK(int fd);
 int testAP();*/
 int check_lx200_connection(int fd);
 
+
 /**************************************************************************
  Get Commands: store data in the supplied buffer. Return 0 on success or -1 on failure
  **************************************************************************/
@@ -316,3 +317,5 @@ int selectCatalogObject(int fd, int catalog, int NNNN);
 int selectSubCatalog(int fd, int catalog, int subCatalog);
 /* Set Debug */
 void setLX200Debug(const char *deviceName, unsigned int debug_level);
+/* Send time in :hIyymmddhhmmss format */
+bool sendAutostarTime(int fd, const char *cmd);

@@ -21,6 +21,7 @@
    License along with this library;
    if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301  USA
+   
  */
 
 #include "lx200telescope.h"
@@ -306,24 +307,82 @@ bool LX200Telescope::ReadScopeStatus()
     }
     else if (TrackState == SCOPE_PARKING)
     {
-        if (isSlewComplete())
+/*        if (isSlewComplete())
         {
             SetParked(true);
-        }
-    }
+			TrackState = SCOPE_PARKED;
+		    ParkSP.setState(IPS_OK);
+			ParkSP.apply();
 
-    if (getLX200RA(PortFD, &currentRA) < 0 || getLX200DEC(PortFD, &currentDEC) < 0)
+	    LOG_INFO("Telescope parked successfully.");
+ 
+        } */
+        
+        time_t now = time(nullptr);
+
+    	if ((now - parkStartTime) >= 30)
+    	{
+        	TrackState = SCOPE_PARKED;
+        	SetParked(true);
+
+        	ParkSP.setState(IPS_OK);
+        	ParkSP.apply();
+
+        	LOG_INFO("Parking complete (timeout).");
+    	}
+    }
+//LOGF_INFO("STATE DEBUG: isParked=%d TrackState=%d isSlewComplete=%d",isParked(),TrackState,isSlewComplete());
+			         
+if (getLX200RA(PortFD, &currentRA) < 0 ||
+    getLX200DEC(PortFD, &currentDEC) < 0)
+	{
+	    if ((TrackState == SCOPE_PARKED) || TrackState == SCOPE_PARKING)
+	    {
+	        //  LOG_INFO("RA/DEC read failed but ignored (parked)");
+
+	        EqNP.setState(IPS_OK);
+	        EqNP.apply();
+	        return true;
+	    }
+
+	    EqNP.setState(IPS_ALERT);
+	    LOG_ERROR("Error reading RA/DEC.");
+	    EqNP.apply();
+	    return false;
+	}
+
+/*    if (getLX200RA(PortFD, &currentRA) < 0 || getLX200DEC(PortFD, &currentDEC) < 0)
     {
         EqNP.setState(IPS_ALERT);
         LOG_ERROR("Error reading RA/DEC.");
         EqNP.apply();
         return false;
     }
-
+*/
     NewRaDec(currentRA, currentDEC);
 
     return true;
 }
+
+/*void LX200Telescope::TimerHit() //fuer parking
+{
+//    if (TrackState == SCOPE_PARKING)
+    if (1)
+    {
+        TrackState = SCOPE_PARKED;
+        SetParked(true);
+
+        ParkSP.setState(IPS_OK);
+        ParkSP.apply();
+
+        LOG_INFO("Assuming park complete after 30 seconds.");
+        return;
+    }
+
+    SetTimer(getCurrentPollingPeriod());
+    Telescope::TimerHit();
+}
+*/
 
 bool LX200Telescope::Goto(double ra, double dec)
 {
@@ -491,7 +550,22 @@ bool LX200Telescope::Park()
 
     TrackState = SCOPE_PARKING;
     LOG_INFO("Parking telescope in progress...");
+    parkStartTime = time(nullptr);
+
+	TrackState = SCOPE_PARKING;
+	ParkSP.setState(IPS_BUSY);
+	ParkSP.apply();
+
+//  	SetTimer(30000);   // 30 Sekunden
+/*    TrackState = SCOPE_PARKED; //Jetzt in ReadScopeStatus
+   SetParked(true);
+    ParkSP.setState(IPS_OK);
+    ParkSP.apply();
+    LOG_INFO("Telescope parked successfully.");
+
+*/
     return true;
+
 }
 
 bool LX200Telescope::MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command)
