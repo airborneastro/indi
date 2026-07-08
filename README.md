@@ -1,3 +1,5 @@
+## Fork of indilib/indi with modifications for a LX200GPS telescope, see README_LX200GPS.md
+
 # INDI Core Library
 
 [![Linux](https://github.com/indilib/indi/actions/workflows/linux.yml/badge.svg)](https://github.com/indilib/indi/actions)
