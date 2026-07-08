@@ -1,4 +1,4 @@
-## Fork of indilib/indi with modifications for a LX200GPS telescope, see README_LX200GPS.md
+## Fork of indilib/indi with modifications for a LX200GPS telescope, [see this README](README_LX200GPS.md)
 
 # INDI Core Library
 
