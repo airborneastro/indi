@@ -30,7 +30,7 @@
 LX200GPS::LX200GPS() : LX200Autostar()
 {
     MaxReticleFlashRate = 9;
-//  Naechste Zeile ist neu und war im Original von PINS, sonst kein Tracking!
+//  Next line: TELESCOPE_CAN_CONTROL_TRACK needed for P.I.N.S. even if it can't.
     SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK, 4);
 }
 
@@ -93,7 +93,7 @@ bool LX200GPS::initProperties()
     GuideRateNP.fill(getDeviceName(), "GUIDE_RATE", "Custom Guide Rate", MOTION_TAB, IP_RW, 0, IPS_IDLE);
 
     MountTypeSP.reset();
-    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON); //better EQ_FORK
+    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON); //better EQ_FORK?
 
     return true;
 }
@@ -357,7 +357,7 @@ bool LX200GPS::ISNewSwitch(const char *dev, const char *name, ISState *states, c
     return LX200Autostar::ISNewSwitch(dev, name, states, names, n);
 }
 
-//Urspruengliche Funktion auskommentiert Juni 26 für neue Park/Unpark-Logik
+//Commented out for new Park/Unpark logic
 /*bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
     ln_zonedate ltm;
@@ -407,7 +407,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 
 	if (isSimulation())
 		return true;
-// siehe unten bei setutcdatetime, ggf. direkt berechnen
+
 	JD = ln_get_julian_day(utc);
 
 	ln_date_to_zonedate(utc, &ltm, utc_offset * 3600);
@@ -418,8 +418,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	LOGF_INFO("LX200GPS :hI TX -> %s", cmd);
 	if (!sendAutostarTime(PortFD, cmd))
 	{
-		LOG_WARN("Smart-Initialisierung mit :hI fehlgeschlagen. Versuche alten Fallback...");
-       // Optionaler Fallback, falls die Handbox den Befehl verweigert:
+		LOG_WARN("Smart Init with :hI failed. Try old fallback...");
     	if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false)
     	    {
     	        LOG_ERROR("Error setting local time time.");
@@ -516,7 +515,7 @@ bool LX200GPS::UnPark()
     		SetParked(false);
 		ParkSP.setState(IPS_OK);
         	ParkSP.apply();
-		setUTCDateTime(); //setzt die Zeit mit :hI und startet das Teleskop.
+		setUTCDateTime(); //sets time with :hI and initializes telescope.
 		TrackState = SCOPE_TRACKING; //for PINS to show tracking telescope
 	    	return true;
 	}	
@@ -534,17 +533,17 @@ bool LX200GPS::setUTCDateTime()
 
     double jd;
 
-    // 1. Aktuelle Systemzeit (UTC) abfragen
+    // 1. System time (UTC)
     ln_get_date_from_sys(&utc);
 
-    // 2. In Julianischen Tag konvertierenindiserver -v indi_lx200gps indi_simulator_ccd
+    // 2. convert to Julian Dayn
     jd = ln_get_julian_day(&utc);
 
     // 3. In lokale Zeit der System-Zeitzone umwandeln
-    ln_get_local_date(jd, &local); //da ist DST mit drin, wird für :hI so gebraucht
+    ln_get_local_date(jd, &local); //includes daylight saving as needed for :hI
 
 	char cmd[32];
-    // % 100 macht aus "2026" "26"
+
 	snprintf(cmd, sizeof(cmd),
 	":hI%02d%02d%02d%02d%02d%02d#",local.years % 100,local.months,local.days,local.hours,local.minutes,(int)(local.seconds + 0.5));
 	LOGF_INFO("LX200GPS :hI TX -> %s", cmd);	

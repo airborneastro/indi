@@ -7,7 +7,7 @@ Further modification allowing to reboot a parked LX200GPS with the :I# command w
 
 You can either replace the files below in your clone of https://github.com/indilib/indi.git or use this fork.
 
-To build indi, see https://astroisk.nl/blog/2024/03/20/raspberry-pi-5-indi/ or the original README of indilib.
+To build indi, see https://astroisk.nl/blog/2024/03/20/raspberry-pi-5-indi/ or the original README of indilib, also for installing the necessary prerequisits. 
 
 ```
 mkdir -p ~/Projects
@@ -24,7 +24,7 @@ These files have been modified with respect to indilib/indi:
 ```
 drivers/telescope/lx200gps.h
 drivers/telescope/lx200gps.cpp
-drivers/telescope/lx200driver.hs
+drivers/telescope/lx200driver.h
 drivers/telescope/lx200driver.cpp
 drivers/telescope/lx200telescope.h
 drivers/telescope/lx200telescope.cpp
