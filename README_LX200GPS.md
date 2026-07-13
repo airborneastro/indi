@@ -1,6 +1,7 @@
 # Fork of indilib/indi with modifications to indi_lx200gps
 
-Modification implementing the :hIyymmddhhmmss command to initialize a (permanently mounted) LX200GPS with its GPS system switched off. 
+Modification implementing the :hIyymmddhhmmss command to initialize a (permanently mounted) LX200GPS with its GPS system switched off. After the :hI
+initialization, TrackState is set to SCOPE_TRACKING, giving P.I.N.S. the green "tracking light".
 
 Further modification allowing to reboot a parked LX200GPS with the :I# command which enables to park and unpark the telescope without power toggling.
 
