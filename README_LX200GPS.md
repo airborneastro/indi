@@ -33,7 +33,7 @@ drivers/telescope/lx200telescope.cpp
 If you do NOT make install for a full install, just replace the lx200 driver files: 
 ```
 cd ~/Projects/indi/tmp/drivers/telescope
-sudo cp /usr/bin/indi_lx200generic orig_indi_lx200generic
+sudo cp /usr/bin/indi_lx200generic /usr/bin/orig_indi_lx200generic
 sudo cp indi_lx200generic /usr/bin
 sudo cp /lib/aarch64-linux-gnu/libindilx200.so.2.2.3 /lib/aarch64-linux-gnu/orig_libindilx200.so.2.2.3
 sudo cp libindilx200.so.2.2.3 /lib/aarch64-linux-gnu/libindilx200.so.2.2.3
@@ -50,7 +50,7 @@ If not using make install after make, do:
 
 ```
 cd ~/Projects/indi/tmp/drivers/focuser
-sudo cp /usr/bin/indi_myfocuserpro2_focus orig_indi_myfocuserpro2_focus
+sudo cp /usr/bin/indi_myfocuserpro2_focus /usr/bin/orig_indi_myfocuserpro2_focus
 sudo cp indi_myfocuserpro2_focus /usr/bin
 
 ```
