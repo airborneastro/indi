@@ -30,7 +30,7 @@
 LX200GPS::LX200GPS() : LX200Autostar()
 {
     MaxReticleFlashRate = 9;
-// Important for PINS:    
+//  Naechste Zeile ist neu und war im Original von PINS, sonst kein Tracking!
     SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK, 4);
 }
 
@@ -357,8 +357,8 @@ bool LX200GPS::ISNewSwitch(const char *dev, const char *name, ISState *states, c
     return LX200Autostar::ISNewSwitch(dev, name, states, names, n);
 }
 
-/*
-bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
+//Urspruengliche Funktion auskommentiert Juni 26 für neue Park/Unpark-Logik
+/*bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
     ln_zonedate ltm;
 
@@ -399,8 +399,10 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     return true;
 }
 */
+
 bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 {
+	LOG_INFO("Entering updateTime");	
 	ln_zonedate ltm;
 
 	if (isSimulation())
@@ -409,7 +411,6 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	JD = ln_get_julian_day(utc);
 
 	ln_date_to_zonedate(utc, &ltm, utc_offset * 3600);
-
 	char cmd[32];
 	
 	snprintf(cmd, sizeof(cmd),
@@ -418,7 +419,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	if (!sendAutostarTime(PortFD, cmd))
 	{
 		LOG_WARN("Smart-Initialisierung mit :hI fehlgeschlagen. Versuche alten Fallback...");
-        // Optionaler Fallback, falls die Handbox den Befehl verweigert:
+       // Optionaler Fallback, falls die Handbox den Befehl verweigert:
     	if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false)
     	    {
     	        LOG_ERROR("Error setting local time time.");
@@ -438,6 +439,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     	}
     }
 
+    TrackState = SCOPE_TRACKING; //for PINS to show tracking telescope
     LOG_INFO("Time updated, updating planetary data...");
     return true;
 }
@@ -511,11 +513,12 @@ bool LX200GPS::UnPark()
 	if (LX200GPS::Handshake()) //if not responding, local Handshake() calls WakeUp, :I# reset and waits
 	{
 		TrackState = SCOPE_IDLE;
-    	SetParked(false);
+    		SetParked(false);
 		ParkSP.setState(IPS_OK);
-        ParkSP.apply();
+        	ParkSP.apply();
 		setUTCDateTime(); //setzt die Zeit mit :hI und startet das Teleskop.
-	    return true;
+		TrackState = SCOPE_TRACKING; //for PINS to show tracking telescope
+	    	return true;
 	}	
 	return false;
 	
