@@ -36,8 +36,8 @@ If you do NOT make install for a full install, just replace the lx200 driver fil
 cd ~/Projects/indi/tmp/drivers/telescope
 sudo cp /usr/bin/indi_lx200generic /usr/bin/orig_indi_lx200generic
 sudo cp indi_lx200generic /usr/bin
-sudo cp /lib/aarch64-linux-gnu/libindilx200.so.2.2.3 /lib/aarch64-linux-gnu/orig_libindilx200.so.2.2.3
-sudo cp libindilx200.so.2.2.3 /lib/aarch64-linux-gnu/libindilx200.so.2.2.3
+sudo cp /lib/aarch64-linux-gnu/libindilx200.so.2.2.5 /lib/aarch64-linux-gnu/orig_libindilx200.so.2.2.5
+sudo cp libindilx200.so.2.2.3 /lib/aarch64-linux-gnu/libindilx200.so.2.2.5
 ```
 The /lib/aarch64-linux-gnu directory is for a Raspberry Pi 4/5 system only.
 
