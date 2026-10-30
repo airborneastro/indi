@@ -31,7 +31,8 @@ LX200GPS::LX200GPS() : LX200Autostar()
 {
     MaxReticleFlashRate = 9;
 //  Next line: TELESCOPE_CAN_CONTROL_TRACK needed for P.I.N.S. even if it can't.
-    SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK, 4);
+    SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK |
+        TELESCOPE_HAS_TRACK_MODE, 4);
 }
 
 const char *LX200GPS::getDefaultName()
@@ -439,6 +440,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     	}
     
     TrackState = SCOPE_TRACKING;
+/*
     //LX200GPS is tracking after :hI, so send that to P.I.N.S. 
     //does not activate the other tracking mode switches!
     TrackModeSP[0].setState(ISS_ON);  // switches the "Sidereal"-Button to on
@@ -450,6 +452,7 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
     TrackModeSP.setState(IPS_OK);
     // send state to client
     TrackModeSP.apply();
+*/
     LOG_INFO("Time updated, updating planetary data...");
     return true;
 }
