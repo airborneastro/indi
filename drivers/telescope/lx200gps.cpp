@@ -419,26 +419,37 @@ bool LX200GPS::updateTime(ln_date *utc, double utc_offset)
 	if (!sendAutostarTime(PortFD, cmd))
 	{
 		LOG_WARN("Smart Init with :hI failed. Try old fallback...");
-    	if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false)
-    	    {
-    	        LOG_ERROR("Error setting local time time.");
+    		if (setLocalTime24(ltm.hours, ltm.minutes, ltm.seconds) == false) 
+		{
+    	        	LOG_ERROR("Error setting local time time.");
 		    	return false;
-    	    }
-    	if (setLocalDate(utc->days, utc->months, utc->years) == false)
-            {
-                LOG_ERROR("Error setting UTC date.");
+    	    	}
+    		if (setLocalDate(utc->days, utc->months, utc->years) == false) 
+		{
+                	LOG_ERROR("Error setting UTC date.");
 		    	return false;
-    	    }
+    	    	}
     	// Meade defines UTC Offset as the offset ADDED to local time to yield UTC, which
     	// is the opposite of the standard definition of UTC offset!
-    	if (setUTCOffset(utc_offset) == false)
-    	{
-        	LOG_ERROR("Error setting UTC Offset.");
-        	return false;
+    		if (setUTCOffset(utc_offset) == false) 
+		{
+        		LOG_ERROR("Error setting UTC Offset.");
+        		return false;
+    		}
     	}
+    
+    TrackState = SCOPE_TRACKING;
+    //LX200GPS is tracking after :hI, so send that to P.I.N.S. 
+    //does not activate the other tracking mode switches!
+    TrackModeSP[0].setState(ISS_ON);  // switches the "Sidereal"-Button to on
+    for (size_t i = 1; i < TrackModeSP.count(); ++i)
+    {
+        TrackModeSP[i].setState(ISS_OFF); // switches all other modes (Solar, Lunar, Off) off
     }
-
-    TrackState = SCOPE_TRACKING; //for PINS to show tracking telescope
+    // set state to OK (green)
+    TrackModeSP.setState(IPS_OK);
+    // send state to client
+    TrackModeSP.apply();
     LOG_INFO("Time updated, updating planetary data...");
     return true;
 }
