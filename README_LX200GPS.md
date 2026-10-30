@@ -20,6 +20,9 @@ SetTelescopeCapability(GetTelescopeCapability() | TELESCOPE_CAN_CONTROL_TRACK |
 ```
 and then follow the further build instructions below. Only replace /usr/bin/indi_lx200generic with the new version.
 
+If you would like to test your new version with an LX200GPS simulator instead of your real telescope, have a look at
+https://github.com/airborneastro/LX200GPS
+
 To build and install indi, see https://astroisk.nl/blog/2024/03/20/raspberry-pi-5-indi/ or the original README of indilib, also for installing the necessary prerequisits. 
 
 ```
